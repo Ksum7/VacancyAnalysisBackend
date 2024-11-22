@@ -34,6 +34,23 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "restart": true,
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start debug",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script",
+                "start:debug"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "restart": true,
         }
     ]
 }
