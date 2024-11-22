@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { ApiCollectorModule } from './api-collector/api-collector.module';
-import { DataAggregationModule } from './data-aggregation/data-aggregation.module';
-import { AdminModule } from './admin/admin.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ApiCollectorModule } from './modules/api-collector/api-collector.module';
+import { DataAggregationModule } from './modules/data-aggregation/data-aggregation.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: '.env',

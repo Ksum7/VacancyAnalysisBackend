@@ -3,12 +3,13 @@ import { IsString, IsOptional, IsDate, IsNumber, IsBoolean } from 'class-validat
 
 export class VacancyDto {
     @IsString()
+    @Transform(({ obj }) => obj.area?.id)
     @Expose()
     areaId: string;
 
-    @IsString()
-    @Expose()
-    professionId: string;
+    // @IsString()
+    // @Expose()
+    // professionId: string;
 
     @IsDate()
     @Transform(({ value }) => (value ? new Date(value) : null))
@@ -16,7 +17,7 @@ export class VacancyDto {
     publishedAt: Date;
 
     @IsString()
-    @Transform(({ value }) => value?.id)
+    @Transform(({ obj }) => obj.id)
     @Expose()
     hhId: string;
 
@@ -26,31 +27,37 @@ export class VacancyDto {
 
     @IsOptional()
     @IsString()
+    @Transform(({ obj }) => obj.snippet?.requirement)
     @Expose()
     snippetRequirement: string;
 
     @IsOptional()
     @IsString()
+    @Transform(({ obj }) => obj.snippet?.responsibility)
     @Expose()
     snippetResponsibility: string;
 
     @IsOptional()
     @IsNumber()
+    @Transform(({ obj }) => obj.salary?.from)
     @Expose()
     salaryFrom: number;
 
     @IsOptional()
     @IsNumber()
+    @Transform(({ obj }) => obj.salary?.to)
     @Expose()
     salaryTo: number;
 
     @IsOptional()
     @IsString()
+    @Transform(({ obj }) => obj.salary?.currency)
     @Expose()
     salaryCurrency: string;
 
     @IsOptional()
     @IsBoolean()
+    @Transform(({ obj }) => obj.salary?.gross)
     @Expose()
     salaryGross: boolean;
 }
