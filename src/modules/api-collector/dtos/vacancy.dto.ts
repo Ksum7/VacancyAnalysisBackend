@@ -1,15 +1,11 @@
 import { Expose, Transform } from 'class-transformer';
-import { IsString, IsOptional, IsDate, IsNumber, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsNumber, IsBoolean, IsObject, IsInstance } from 'class-validator';
 
 export class VacancyDto {
-    @IsString()
-    @Transform(({ obj }) => obj.area?.id)
+    @IsObject()
+    @Transform(({ obj }) => { id: obj.area?.id })
     @Expose()
-    areaId: string;
-
-    // @IsString()
-    // @Expose()
-    // professionId: string;
+    area: { id: string };
 
     @IsDate()
     @Transform(({ value }) => (value ? new Date(value) : null))
@@ -36,6 +32,12 @@ export class VacancyDto {
     @Transform(({ obj }) => obj.snippet?.responsibility)
     @Expose()
     snippetResponsibility: string;
+
+    @IsOptional()
+    @IsString()
+    @Transform(({ obj }) => obj.employer?.name)
+    @Expose()
+    employerName: string;
 
     @IsOptional()
     @IsNumber()

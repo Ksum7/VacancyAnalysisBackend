@@ -8,6 +8,6 @@ export class Profession {
     @Column()
     title: string;
 
-    @Column({ nullable: true, type: 'text' })
-    synonyms: string;
+    @Column('text', { array: true, nullable: false })
+    synonyms: string[];
 }

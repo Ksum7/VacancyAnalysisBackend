@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { validate } from 'class-validator';
 import { MetaData } from 'src/entities/meta_data.entity';
 import { delay } from 'src/utils/delay.util';
+import { Profession } from 'src/entities/profession.entity';
 
 @Injectable()
 export class ApiCollectorService implements OnModuleInit {
@@ -36,16 +37,28 @@ export class ApiCollectorService implements OnModuleInit {
     }
 
     private async runBackgroundTask() {
+        const s = 1000;
+        const m = s * 60;
+        const h = m * 60;
         while (true) {
-            let waitTime = 60 * 1000;
+            let waitTime;
             try {
-                const res = await this.processVacancies();
-                if (!res) {
-                    waitTime = 2 * 60 * 60 * 1000;
+                switch (await this.processVacancies()) {
+                    case 'error':
+                        console.error('Error during periodic run of "processVacancies"');
+                        waitTime = 2 * h;
+                        break;
+                    case 'added':
+                        console.error('Error during periodic run of "processVacancies"');
+                        waitTime = m;
+                        break;
+                    case 'up_to_date':
+                        waitTime = 24 * h;
+                        break;
                 }
             } catch (error) {
                 console.error('Error during periodic run of "processVacancies":', error);
-                waitTime = 2 * 60 * 60 * 1000;
+                waitTime = 2 * h;
             }
 
             await delay(waitTime);
@@ -59,13 +72,13 @@ export class ApiCollectorService implements OnModuleInit {
 
         if (!metaData) {
             console.error('MetaData with last_checked_date not found');
-            return false;
+            return 'error';
         }
 
         const dateFrom = new Date(metaData.value);
         if (isNaN(dateFrom.getTime())) {
             console.error('Invalid date format in meta data');
-            return false;
+            return 'error';
         }
 
         const dateTo = new Date(dateFrom);
@@ -75,44 +88,43 @@ export class ApiCollectorService implements OnModuleInit {
         const finalDate = new Date();
         finalDate.setHours(12, 0, 0, 0);
 
-        if (dateTo > finalDate) return false;
+        if (dateTo > finalDate) return 'up_to_date';
+        const vacancies: Vacancy[] = [];
+        const professions: Profession[] = []
+        await Promise.all(professions.map(async profession => {
+            const synonyms_str = profession.synonyms.join(" OR ")
 
-        const response = await firstValueFrom(
-            this.httpService.get('/vacancies', {
-                headers: this.secureHeaders,
-                params: {
-                    date_from: dateFrom.toISOString(),
-                    date_to: dateTo.toISOString(),
-                },
-            })
-        );
+            const response = await firstValueFrom(
+                this.httpService.get('/vacancies', {
+                    headers: this.secureHeaders,
+                    params: {
+                        text: `NAME:(${synonyms_str}) or DESCRIPTION:(${synonyms_str})`,
+                        no_magic: true,
+                        only_with_salary: true,
+                        date_from: dateFrom.toISOString(),
+                        date_to: dateTo.toISOString(),
+                    },
+                })
+            );
 
-        const items = response.data?.items || [];
-        const vacancies = [];
+            const items = response.data?.items || [];
+            for (const item of items) {
+                const dto = plainToInstance(VacancyDto, item);
 
-        for (const item of items) {
-            const dto = plainToInstance(VacancyDto, item);
-
-            const errors = await validate(dto);
-            if (errors.length > 0) {
-                console.error('Validation failed for item:', item, errors);
-            } else {
-                let dtoObj = {
-                    ...dto,
-                    area: dto.areaId ? { id: dto.areaId } : null,
-                };
-                delete dtoObj.areaId;
-
-                vacancies.push(this.vacancyRepository.create(dtoObj));
+                const errors = await validate(dto);
+                if (errors.length > 0) {
+                    console.error('Validation failed for item:', item, errors);
+                } else {
+                    vacancies.push(this.vacancyRepository.create({ ...dto, profession: profession }));
+                }
             }
-        }
-
+        }))
         if (vacancies.length > 0) {
             await this.vacancyRepository.save(vacancies);
         }
 
         metaData.value = dateTo.toISOString();
         await this.metaDataRepository.save(metaData);
-        return true;
+        return 'added';
     }
 }

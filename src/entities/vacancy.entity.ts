@@ -39,6 +39,9 @@ export class Vacancy {
     @Column({ nullable: true, type: 'text' })
     snippetResponsibility: string;
 
+    @Column({ nullable: true, type: 'text' })
+    employerName: string;
+
     @Column({ nullable: true, type: 'numeric' })
     salaryFrom: number;
 
