@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Vacancy } from 'src/entities/vacancy.entity';
 import { MetaData } from 'src/entities/meta_data.entity';
+import { AreasUpdateService } from './areas-update.service';
 
 @Module({
     imports: [
@@ -17,6 +18,6 @@ import { MetaData } from 'src/entities/meta_data.entity';
         TypeOrmModule.forFeature([Vacancy, MetaData]),
     ],
     controllers: [],
-    providers: [ApiCollectorService],
+    providers: [ApiCollectorService, AreasUpdateService],
 })
 export class ApiCollectorModule {}
