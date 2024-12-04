@@ -166,25 +166,27 @@ export class DataAggregationService {
 
         const monthlyMedians: Record<string, number> = {};
         for (const [month, salaries] of Object.entries(monthlyData)) {
-            monthlyMedians[month] = this.calculateMedian(salaries) || 0;
+            monthlyMedians[month] = this.calculateMedian(salaries.sort((a, b) => a - b)) || 0;
         }
 
         return monthlyMedians;
     }
 
-    private calculateMedian(values: number[]): number | null {
-        if (!values.length) return null;
+    private calculateMedian(sorted_values: number[]): number | null {
+        if (!sorted_values.length) return null;
 
-        const mid = Math.floor(values.length / 2);
-        return values.length % 2 !== 0 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+        const mid = Math.floor(sorted_values.length / 2);
+        return sorted_values.length % 2 !== 0 ? sorted_values[mid] : (sorted_values[mid - 1] + sorted_values[mid]) / 2;
     }
 
-    private calculatePercentile(values: number[], percentile: number): number | null {
-        if (!values.length) return null;
+    private calculatePercentile(sorted_values: number[], percentile: number): number | null {
+        if (!sorted_values.length) return null;
 
-        const pos = (values.length - 1) * percentile;
+        const pos = (sorted_values.length - 1) * percentile;
         const base = Math.floor(pos);
         const rest = pos - base;
-        return rest ? values[base] + rest * (values[base + 1] - values[base]) : values[base];
+        return rest
+            ? sorted_values[base] + rest * (sorted_values[base + 1] - sorted_values[base])
+            : sorted_values[base];
     }
 }
