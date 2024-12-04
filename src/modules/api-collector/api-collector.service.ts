@@ -11,6 +11,7 @@ import { validate } from 'class-validator';
 import { MetaData } from 'src/entities/meta_data.entity';
 import { delay } from 'src/utils/delay.util';
 import { Profession } from 'src/entities/profession.entity';
+import { Grade } from 'src/entities/grade.entity';
 
 @Injectable()
 export class ApiCollectorService implements OnModuleInit {
@@ -24,7 +25,9 @@ export class ApiCollectorService implements OnModuleInit {
         @InjectRepository(Vacancy)
         private vacancyRepository: Repository<Vacancy>,
         @InjectRepository(MetaData)
-        private metaDataRepository: Repository<MetaData>
+        private metaDataRepository: Repository<MetaData>,
+        @InjectRepository(Grade)
+        private gradeRepository: Repository<Grade>
     ) {
         this.secureHeaders = {
             Authorization: `Bearer ${this.configService.get<string>('HH_ACCESS_TOKEN')}`,
@@ -90,35 +93,51 @@ export class ApiCollectorService implements OnModuleInit {
 
         if (dateTo > finalDate) return 'up_to_date';
         const vacancies: Vacancy[] = [];
-        const professions: Profession[] = []
-        await Promise.all(professions.map(async profession => {
-            const synonyms_str = profession.synonyms.join(" OR ")
+        const professions: Profession[] = [];
+        const grades = await this.gradeRepository.find();
 
-            const response = await firstValueFrom(
-                this.httpService.get('/vacancies', {
-                    headers: this.secureHeaders,
-                    params: {
-                        text: `NAME:(${synonyms_str}) or DESCRIPTION:(${synonyms_str})`,
-                        no_magic: true,
-                        only_with_salary: true,
-                        date_from: dateFrom.toISOString(),
-                        date_to: dateTo.toISOString(),
-                    },
-                })
-            );
+        await Promise.all(
+            professions.map(async (profession) => {
+                const synonyms_str = profession.synonyms.join(' OR ');
 
-            const items = response.data?.items || [];
-            for (const item of items) {
-                const dto = plainToInstance(VacancyDto, item);
+                const response = await firstValueFrom(
+                    this.httpService.get('/vacancies', {
+                        headers: this.secureHeaders,
+                        params: {
+                            text: `NAME:(${synonyms_str}) or DESCRIPTION:(${synonyms_str})`,
+                            no_magic: true,
+                            only_with_salary: true,
+                            date_from: dateFrom.toISOString(),
+                            date_to: dateTo.toISOString(),
+                        },
+                    })
+                );
 
-                const errors = await validate(dto);
-                if (errors.length > 0) {
-                    console.error('Validation failed for item:', item, errors);
-                } else {
-                    vacancies.push(this.vacancyRepository.create({ ...dto, profession: profession }));
+                const items = response.data?.items || [];
+                for (const item of items) {
+                    const dto = plainToInstance(VacancyDto, item);
+
+                    const errors = await validate(dto);
+                    if (errors.length > 0) {
+                        console.error('Validation failed for item:', item, errors);
+                    } else {
+                        const vacancy = this.vacancyRepository.create({ ...dto, profession });
+
+                        const matchingGrades = grades.filter((grade) =>
+                            [vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
+                                (value) => typeof value === 'string' && value.includes(grade.title)
+                            )
+                        );
+
+                        if (matchingGrades.length > 0) {
+                            vacancy.grades = matchingGrades;
+                        }
+
+                        vacancies.push(vacancy);
+                    }
                 }
-            }
-        }))
+            })
+        );
         if (vacancies.length > 0) {
             await this.vacancyRepository.save(vacancies);
         }
