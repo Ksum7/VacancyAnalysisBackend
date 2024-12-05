@@ -100,7 +100,6 @@ export class ApiCollectorService implements OnModuleInit {
 
         const sumLengthPromises = await Promise.all(
             professions.map(async (profession) => {
-                const vacancies: Vacancy[] = [];
                 let page = 0;
                 const perPage = 100;
                 const synonyms_str = profession.synonyms.join(' OR ');
@@ -123,6 +122,7 @@ export class ApiCollectorService implements OnModuleInit {
                         })
                     );
 
+                    const vacancies: Vacancy[] = [];
                     const items = response.data?.items || [];
                     for (const item of items) {
                         const dto = plainToInstance(VacancyDto, item, { excludeExtraneousValues: true });
