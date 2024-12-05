@@ -8,6 +8,7 @@ import { MetaData } from 'src/entities/meta_data.entity';
 import { AreasUpdateService } from './areas-update.service';
 import { Grade } from 'src/entities/grade.entity';
 import { Area } from 'src/entities/area.entity';
+import { Profession } from 'src/entities/profession.entity';
 
 @Module({
     imports: [
@@ -17,7 +18,7 @@ import { Area } from 'src/entities/area.entity';
             }),
             inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([Vacancy, MetaData, Grade, Area]),
+        TypeOrmModule.forFeature([Vacancy, MetaData, Grade, Area, Profession]),
     ],
     controllers: [],
     providers: [ApiCollectorService, AreasUpdateService],

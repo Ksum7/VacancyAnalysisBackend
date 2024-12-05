@@ -1,15 +1,9 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 
 @Entity('areas')
 export class Area {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+    @PrimaryColumn('int')
+    id: number;
 
     @ManyToOne(() => Area, { nullable: true })
     @JoinColumn({ name: 'parent_area_id' })

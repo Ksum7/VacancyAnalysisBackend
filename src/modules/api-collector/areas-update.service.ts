@@ -57,7 +57,7 @@ export class AreasUpdateService implements OnModuleInit {
                     const newArea = this.areaRepository.create({
                         id: area.id,
                         title: area.name,
-                        parentPath: [...parentPath, area.parent_id].filter(Boolean),
+                        parentPath: [...parentPath].filter(Boolean),
                         parentArea: area.parent_id
                             ? await this.areaRepository.findOne({ where: { id: area.parent_id } })
                             : null,

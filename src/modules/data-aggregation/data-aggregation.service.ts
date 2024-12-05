@@ -78,8 +78,8 @@ export class DataAggregationService {
     }
 
     async getVacancies(
-        page: number,
-        size: number,
+        page: number = 1,
+        size: number = 100,
         areaId?: string,
         professionId?: string,
         gradeId?: string,

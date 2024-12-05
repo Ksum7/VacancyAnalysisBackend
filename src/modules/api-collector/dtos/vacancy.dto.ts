@@ -3,12 +3,16 @@ import { IsString, IsOptional, IsDate, IsNumber, IsBoolean, IsObject, IsInstance
 
 export class VacancyDto {
     @IsObject()
-    @Transform(({ obj }) => { id: obj.area?.id })
+    @Transform(({ obj }) => {
+        return {
+            id: obj.area?.id,
+        };
+    })
     @Expose()
-    area: { id: string };
+    area: { id: number };
 
     @IsDate()
-    @Transform(({ value }) => (value ? new Date(value) : null))
+    @Transform(({ obj }) => (obj.published_at ? new Date(obj.published_at) : null))
     @Expose()
     publishedAt: Date;
 
