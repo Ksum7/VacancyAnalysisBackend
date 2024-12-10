@@ -26,7 +26,7 @@ export class DataAggregationController {
 
     @Get('/statistic')
     async getStatistic(
-        @Query('areaId') areaId?: string,
+        @Query('areaId') areaId?: number,
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
@@ -40,7 +40,7 @@ export class DataAggregationController {
     async getVacancies(
         @Query('page') page: number,
         @Query('size') size: number,
-        @Query('areaId') areaId?: string,
+        @Query('areaId') areaId?: number,
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
