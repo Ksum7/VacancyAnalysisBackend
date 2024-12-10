@@ -32,7 +32,7 @@ export class DataAggregationService {
     }
 
     async getStatistic(
-        areaId?: string,
+        areaId?: number,
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date }
@@ -80,7 +80,7 @@ export class DataAggregationService {
     async getVacancies(
         page: number = 0,
         size: number = 100,
-        areaId?: string,
+        areaId?: number,
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date }
