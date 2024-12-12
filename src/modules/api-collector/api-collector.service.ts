@@ -50,7 +50,7 @@ export class ApiCollectorService implements OnModuleInit {
             try {
                 switch (await this.processVacancies()) {
                     case 'error':
-                        waitTime = 2 * h;
+                        waitTime = 10 * m;
                         break;
                     case 'added':
                         waitTime = 5 * s;
@@ -62,7 +62,7 @@ export class ApiCollectorService implements OnModuleInit {
                 }
             } catch (error) {
                 console.error('Error during periodic run of "processVacancies":', error);
-                waitTime = 2 * h;
+                waitTime = 10 * m;
             }
 
             await delay(waitTime);
