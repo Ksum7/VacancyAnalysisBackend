@@ -44,7 +44,7 @@ export class DataAggregationService {
             .leftJoinAndSelect('vacancy.grades', 'grades');
 
         if (areaId) {
-            query.andWhere('vacancy.area.id = :areaId', { areaId });
+            query.andWhere('(vacancy.area.id = :areaId OR :areaId = ANY(vacancy.area.parentPath))', { areaId });
         }
 
         if (professionId) {
@@ -125,11 +125,11 @@ export class DataAggregationService {
 
         const finalSalaries = [];
 
-        if (salaryFrom !== null) {
+        if (salaryFrom !== null && salaryFrom !== 0) {
             finalSalaries.push(salaryFrom * 0.87);
         }
 
-        if (salaryTo !== null) {
+        if (salaryTo !== null && salaryTo !== 0) {
             finalSalaries.push(salaryTo * 0.87);
         }
 
@@ -145,9 +145,15 @@ export class DataAggregationService {
             USD: 90,
             EUR: 95,
             GBP: 110,
+            BYR: 32,
+            AZN: 61,
+            KZT: 0.2,
+            UZS: 0.0081,
+            KGS: 1.2,
+            RUR: 1,
         };
 
-        return exchangeRates[currency] || 1;
+        return exchangeRates[currency] ?? 0;
     }
 
     private calculateMonthlyMedians(vacancies: Vacancy[]): Record<string, number> {

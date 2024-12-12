@@ -1,12 +1,4 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    JoinTable,
-    ManyToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, ManyToMany } from 'typeorm';
 import { Area } from './area.entity';
 import { Profession } from './profession.entity';
 import { Grade } from './grade.entity';
@@ -24,7 +16,7 @@ export class Vacancy {
     @JoinColumn({ name: 'profession_id' })
     profession: Profession;
 
-    @Column({ nullable: true, type: 'timestamp' })
+    @Column({ nullable: true, type: 'timestamptz' })
     publishedAt: Date;
 
     @Column({ nullable: true })

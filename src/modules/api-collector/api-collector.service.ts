@@ -70,36 +70,42 @@ export class ApiCollectorService implements OnModuleInit {
     }
 
     private async processVacancies() {
-        const metaData = await this.metaDataRepository.findOne({
-            where: { key: 'last_checked_date' },
-        });
-
-        if (!metaData) {
-            console.error('MetaData with last_checked_date not found');
+        const professions = await this.professionRepository.find();
+        if (!professions || professions.length === 0) {
+            console.error('No professions found');
             return 'error';
         }
 
-        const dateFrom = new Date(metaData.value);
-        if (isNaN(dateFrom.getTime())) {
-            console.error('Invalid date format in meta data');
-            return 'error';
-        }
-
-        const dateTo = new Date(dateFrom);
-        dateTo.setDate(dateFrom.getDate() + 1); /// step 1 day
-        dateTo.setHours(12, 0, 0, 0);
-
-        const finalDate = new Date();
-        finalDate.setHours(12, 0, 0, 0);
-
-        if (dateTo > finalDate) return 'up_to_date';
+        const grades = await this.gradeRepository.find();
 
         let sumLength = 0;
-        const professions = await this.professionRepository.find();
-        const grades = await this.gradeRepository.find();
+        let allUpToDate = true;
 
         const sumLengthPromises = await Promise.all(
             professions.map(async (profession) => {
+                const lastCheckedDate = profession.last_checked_date;
+
+                if (!lastCheckedDate) {
+                    console.error(`Last checked date not found for profession: ${profession.title}`);
+                    return 0;
+                }
+
+                const dateFrom = lastCheckedDate;
+
+                const dateTo = new Date(dateFrom);
+                dateTo.setDate(dateFrom.getDate() + 1); // Step 1 day
+                dateTo.setHours(12, 0, 0, 0);
+
+                const finalDate = new Date();
+                finalDate.setHours(12, 0, 0, 0);
+
+                if (dateTo > finalDate) {
+                    console.log(`Profession ${profession.title} is already up to date.`);
+                    return 0;
+                }
+
+                allUpToDate = false;
+
                 let page = 0;
                 const perPage = 100;
                 const synonyms_str = profession.synonyms.join(' OR ');
@@ -111,7 +117,7 @@ export class ApiCollectorService implements OnModuleInit {
                         this.httpService.get('/vacancies', {
                             headers: this.secureHeaders,
                             params: {
-                                text: `NAME:(${synonyms_str}) or DESCRIPTION:(${synonyms_str})`,
+                                text: `NAME:(${synonyms_str} or DESCRIPTION:(${synonyms_str}))`,
                                 no_magic: true,
                                 only_with_salary: true,
                                 date_from: dateFrom.toISOString(),
@@ -131,10 +137,15 @@ export class ApiCollectorService implements OnModuleInit {
                         if (errors.length > 0) {
                             console.error('Validation failed for item:', item, errors);
                         } else {
+                            const existingVacancy = await this.vacancyRepository.findOne({ where: { hhId: dto.hhId } });
+                            if (existingVacancy) {
+                                continue;
+                            }
+
                             const vacancy = this.vacancyRepository.create({ ...dto, profession });
 
                             const matchingGrades = grades.filter((grade) =>
-                                [vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
+                                [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
                                     (value) => typeof value === 'string' && value.includes(grade.title)
                                 )
                             );
@@ -159,14 +170,22 @@ export class ApiCollectorService implements OnModuleInit {
                     page++;
                 }
 
+                profession.last_checked_date = dateTo;
+                await this.professionRepository.save(profession);
+                console.log(
+                    `${profession.title} ${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()} | New vacancies added: ${localSum} vacancies`
+                );
                 return localSum;
             })
         );
+
         sumLength = sumLengthPromises.reduce((acc, curr) => acc + curr, 0);
 
-        metaData.value = dateTo.toISOString();
-        await this.metaDataRepository.save(metaData);
-        console.log(`${dateFrom} - ${dateTo} new vacancies added: { ${sumLength} vacancies }`);
+        if (allUpToDate) {
+            return 'up_to_date';
+        }
+
+        console.log(`New vacancies added: ${sumLength} vacancies`);
         return 'added';
     }
 }

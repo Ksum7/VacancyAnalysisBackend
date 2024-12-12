@@ -10,4 +10,7 @@ export class Profession {
 
     @Column('text', { array: true, nullable: false })
     synonyms: string[];
+
+    @Column({ nullable: true, type: 'timestamptz' })
+    last_checked_date: Date;
 }
