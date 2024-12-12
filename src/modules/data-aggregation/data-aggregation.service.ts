@@ -46,6 +46,7 @@ export class DataAggregationService {
         if (areaId) {
             query.andWhere('(area.id = :areaId OR :areaId::text = ANY(area.parentPath))', { areaId });
         }
+
         if (professionId) {
             query.andWhere('vacancy.profession.id = :professionId', { professionId });
         }
