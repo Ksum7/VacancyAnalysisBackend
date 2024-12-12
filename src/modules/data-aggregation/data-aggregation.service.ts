@@ -44,9 +44,8 @@ export class DataAggregationService {
             .leftJoinAndSelect('vacancy.grades', 'grades');
 
         if (areaId) {
-            query.andWhere('(vacancy.area.id = :areaId OR :areaId::text = ANY(vacancy.area.parentPath))', { areaId });
+            query.andWhere('(area.id = :areaId OR :areaId::text = ANY(area.parentPath))', { areaId });
         }
-
         if (professionId) {
             query.andWhere('vacancy.profession.id = :professionId', { professionId });
         }
