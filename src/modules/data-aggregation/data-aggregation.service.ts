@@ -44,7 +44,7 @@ export class DataAggregationService {
             .leftJoinAndSelect('vacancy.grades', 'grades');
 
         if (areaId) {
-            query.andWhere('(vacancy.area.id = :areaId OR :areaId = ANY(vacancy.area.parentPath))', { areaId });
+            query.andWhere('(vacancy.area.id = :areaId OR :areaId::text = ANY(vacancy.area.parentPath))', { areaId });
         }
 
         if (professionId) {
@@ -194,5 +194,18 @@ export class DataAggregationService {
         return rest
             ? sorted_values[base] + rest * (sorted_values[base + 1] - sorted_values[base])
             : sorted_values[base];
+    }
+
+    async get_available_dates(): Promise<{ from: Date; to: Date }> {
+        const result = await this.vacancyRepository
+            .createQueryBuilder('vacancy')
+            .select('MIN(vacancy.publishedAt)', 'from')
+            .addSelect('MAX(vacancy.publishedAt)', 'to')
+            .getRawOne();
+
+        return {
+            from: result.from ? new Date(result.from) : new Date(),
+            to: result.to ? new Date(result.to) : new Date(),
+        };
     }
 }

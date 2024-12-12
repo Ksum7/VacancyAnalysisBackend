@@ -60,4 +60,9 @@ export class DataAggregationController {
 
         return this.dataAggregationService.getVacancies(page, size, areaId, professionId, gradeId, period);
     }
+
+    @Get('/available_dates')
+    async get_available_dates(): Promise<{ from: Date; to: Date }> {
+        return this.dataAggregationService.get_available_dates();
+    }
 }
