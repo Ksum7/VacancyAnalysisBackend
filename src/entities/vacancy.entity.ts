@@ -1,13 +1,4 @@
-import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    JoinTable,
-    ManyToMany,
-    OneToOne,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, ManyToMany } from 'typeorm';
 import { Area } from './area.entity';
 import { Profession } from './profession.entity';
 import { Experience } from './experience.entity';
@@ -26,7 +17,7 @@ export class Vacancy {
     @JoinColumn({ name: 'profession_id' })
     profession: Profession;
 
-    @OneToOne(() => Experience, { nullable: true })
+    @ManyToOne(() => Experience, { nullable: true })
     @JoinColumn({ name: 'experience_id' })
     experience: Experience;
 
