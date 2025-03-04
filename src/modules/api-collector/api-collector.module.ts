@@ -9,6 +9,7 @@ import { AreasUpdateService } from './areas-update.service';
 import { Grade } from 'src/entities/grade.entity';
 import { Area } from 'src/entities/area.entity';
 import { Profession } from 'src/entities/profession.entity';
+import { Experience } from 'src/entities/experience.entity';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { Profession } from 'src/entities/profession.entity';
             }),
             inject: [ConfigService],
         }),
-        TypeOrmModule.forFeature([Vacancy, MetaData, Grade, Area, Profession]),
+        TypeOrmModule.forFeature([Vacancy, MetaData, Grade, Area, Profession, Experience]),
     ],
     controllers: [],
     providers: [ApiCollectorService, AreasUpdateService],

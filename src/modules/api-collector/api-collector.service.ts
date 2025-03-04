@@ -12,6 +12,7 @@ import { MetaData } from 'src/entities/meta_data.entity';
 import { delay } from 'src/utils/delay.util';
 import { Profession } from 'src/entities/profession.entity';
 import { Grade } from 'src/entities/grade.entity';
+import { Experience } from 'src/entities/experience.entity';
 
 @Injectable()
 export class ApiCollectorService implements OnModuleInit {
@@ -28,6 +29,8 @@ export class ApiCollectorService implements OnModuleInit {
         private metaDataRepository: Repository<MetaData>,
         @InjectRepository(Grade)
         private gradeRepository: Repository<Grade>,
+        @InjectRepository(Experience)
+        private experienceRepository: Repository<Experience>,
         @InjectRepository(Profession)
         private professionRepository: Repository<Profession>
     ) {
@@ -77,6 +80,7 @@ export class ApiCollectorService implements OnModuleInit {
         }
 
         const grades = await this.gradeRepository.find();
+        const experiences = await this.experienceRepository.find();
 
         let sumLength = 0;
         let allUpToDate = true;
@@ -142,6 +146,9 @@ export class ApiCollectorService implements OnModuleInit {
                                 continue;
                             }
 
+                            const experinceHHId = dto.experienceHHId;
+                            delete dto.experienceHHId;
+
                             const vacancy = this.vacancyRepository.create({ ...dto, profession });
 
                             const matchingGrades = grades.filter((grade) =>
@@ -152,6 +159,14 @@ export class ApiCollectorService implements OnModuleInit {
 
                             if (matchingGrades.length > 0) {
                                 vacancy.grades = matchingGrades;
+                            }
+
+                            const matchingExperience = experiences.find(
+                                (experience) => experience.hhId === experinceHHId
+                            );
+
+                            if (matchingExperience) {
+                                vacancy.experience = matchingExperience;
                             }
 
                             vacancies.push(vacancy);

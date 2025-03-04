@@ -33,6 +33,12 @@ export class VacancyDto {
 
     @IsOptional()
     @IsString()
+    @Transform(({ obj }) => obj.experience?.id)
+    @Expose()
+    experienceHHId: string;
+
+    @IsOptional()
+    @IsString()
     @Transform(({ obj }) => obj.snippet?.responsibility)
     @Expose()
     snippetResponsibility: string;

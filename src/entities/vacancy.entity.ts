@@ -1,6 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, ManyToMany } from 'typeorm';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+    JoinTable,
+    ManyToMany,
+    OneToOne,
+} from 'typeorm';
 import { Area } from './area.entity';
 import { Profession } from './profession.entity';
+import { Experience } from './experience.entity';
 import { Grade } from './grade.entity';
 
 @Entity('vacancies')
@@ -15,6 +25,10 @@ export class Vacancy {
     @ManyToOne(() => Profession, { nullable: true })
     @JoinColumn({ name: 'profession_id' })
     profession: Profession;
+
+    @OneToOne(() => Experience, { nullable: true })
+    @JoinColumn({ name: 'experience_id' })
+    experience: Experience;
 
     @Column({ nullable: true, type: 'timestamptz' })
     publishedAt: Date;
