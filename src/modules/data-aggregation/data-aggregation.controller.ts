@@ -4,6 +4,7 @@ import { Vacancy } from 'src/entities/vacancy.entity';
 import { Grade } from 'src/entities/grade.entity';
 import { Area } from 'src/entities/area.entity';
 import { Profession } from 'src/entities/profession.entity';
+import { Experience } from 'src/entities/experience.entity';
 
 @Controller()
 export class DataAggregationController {
@@ -24,16 +25,22 @@ export class DataAggregationController {
         return this.dataAggregationService.getGrades();
     }
 
+    @Get('/experiences')
+    getExperiences(): Promise<Experience[]> {
+        return this.dataAggregationService.getExperiences();
+    }
+
     @Get('/statistic')
     async getStatistic(
         @Query('areaId') areaId?: number,
+        @Query('experienceId') experienceId?: string,
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
         @Query('to') to?: string
     ): Promise<any> {
         const period = from && to ? { from: new Date(from), to: new Date(to) } : undefined;
-        return this.dataAggregationService.getStatistic(areaId, professionId, gradeId, period);
+        return this.dataAggregationService.getStatistic(areaId, experienceId, professionId, gradeId, period);
     }
 
     @Get('/vacancies')
@@ -41,6 +48,7 @@ export class DataAggregationController {
         @Query('page') page: number,
         @Query('size') size: number,
         @Query('areaId') areaId?: number,
+        @Query('experienceId') experienceId?: string,
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
@@ -58,7 +66,15 @@ export class DataAggregationController {
             period = { from: parsedFrom, to: parsedTo };
         }
 
-        return this.dataAggregationService.getVacancies(page, size, areaId, professionId, gradeId, period);
+        return this.dataAggregationService.getVacancies(
+            page,
+            size,
+            areaId,
+            experienceId,
+            professionId,
+            gradeId,
+            period
+        );
     }
 
     @Get('/available_dates')

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Area } from 'src/entities/area.entity';
+import { Experience } from 'src/entities/experience.entity';
 import { Grade } from 'src/entities/grade.entity';
 import { Profession } from 'src/entities/profession.entity';
 import { Vacancy } from 'src/entities/vacancy.entity';
@@ -16,7 +17,9 @@ export class DataAggregationService {
         @InjectRepository(Grade)
         private readonly gradeRepository: Repository<Grade>,
         @InjectRepository(Vacancy)
-        private readonly vacancyRepository: Repository<Vacancy>
+        private readonly vacancyRepository: Repository<Vacancy>,
+        @InjectRepository(Experience)
+        private experienceRepository: Repository<Experience>
     ) {}
 
     async getAreas(): Promise<Area[]> {
@@ -31,8 +34,13 @@ export class DataAggregationService {
         return this.gradeRepository.find();
     }
 
+    async getExperiences(): Promise<Experience[]> {
+        return this.experienceRepository.find();
+    }
+
     async getStatistic(
         areaId?: number,
+        experienceId?: string,
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date }
@@ -49,6 +57,10 @@ export class DataAggregationService {
 
         if (professionId) {
             query.andWhere('vacancy.profession.id = :professionId', { professionId });
+        }
+
+        if (experienceId) {
+            query.andWhere('vacancy.experience.id = :experienceId', { experienceId });
         }
 
         if (gradeId) {
@@ -81,6 +93,7 @@ export class DataAggregationService {
         page: number = 0,
         size: number = 100,
         areaId?: number,
+        experienceId?: string,
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date }
@@ -97,6 +110,10 @@ export class DataAggregationService {
 
         if (professionId) {
             query.andWhere('vacancy.profession.id = :professionId', { professionId });
+        }
+
+        if (experienceId) {
+            query.andWhere('vacancy.experience.id = :experienceId', { experienceId });
         }
 
         if (gradeId) {
