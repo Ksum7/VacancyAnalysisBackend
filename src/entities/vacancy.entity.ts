@@ -51,6 +51,9 @@ export class Vacancy {
     @Column({ nullable: true, type: 'boolean' })
     salaryGross: boolean;
 
+    @Column({ nullable: true })
+    salary_rangeModeId: string;
+
     @ManyToMany(() => Grade, (grade) => grade.vacancies, {
         onDelete: 'CASCADE',
     })

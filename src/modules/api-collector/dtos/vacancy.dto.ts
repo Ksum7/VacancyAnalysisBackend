@@ -72,4 +72,10 @@ export class VacancyDto {
     @Transform(({ obj }) => obj.salary?.gross)
     @Expose()
     salaryGross: boolean;
+
+    @IsOptional()
+    @IsString()
+    @Transform(({ obj }) => obj.salary_range?.mode?.id)
+    @Expose()
+    salary_rangeModeId: string;
 }

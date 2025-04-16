@@ -74,7 +74,7 @@ export class DataAggregationService {
             });
         }
 
-        const data = await query.getMany();
+        const data = await query.where("salary_rangeModeId IS NULL OR salary_rangeModeId = 'MONTH'").getMany();
 
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
 
@@ -128,6 +128,7 @@ export class DataAggregationService {
         }
 
         const data = await query
+            .where("salary_rangeModeId IS NULL OR salary_rangeModeId = 'MONTH'")
             .take(size)
             .skip(page * size)
             .getMany();
