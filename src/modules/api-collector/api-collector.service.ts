@@ -65,6 +65,7 @@ export class ApiCollectorService implements OnModuleInit {
                 }
             } catch (error) {
                 console.error('Error during periodic run of "processVacancies":', error);
+                console.error(error.data.errors);
                 waitTime = 10 * m;
             }
 
