@@ -86,118 +86,113 @@ export class ApiCollectorService implements OnModuleInit {
         let sumLength = 0;
         let allUpToDate = true;
 
-        const sumLengthPromises = await Promise.all(
-            professions.map(async (profession) => {
-                const lastCheckedDate = profession.last_checked_date;
+        for (const profession of professions) {
+            const lastCheckedDate = profession.last_checked_date;
 
-                if (!lastCheckedDate) {
-                    console.error(`Last checked date not found for profession: ${profession.title}`);
-                    return 0;
-                }
+            if (!lastCheckedDate) {
+                console.error(`Last checked date not found for profession: ${profession.title}`);
+                continue;
+            }
 
-                const dateFrom = lastCheckedDate;
+            const dateFrom = lastCheckedDate;
 
-                const dateTo = new Date(dateFrom);
-                dateTo.setDate(dateFrom.getDate() + 1); // Step 1 day
-                dateTo.setHours(12, 0, 0, 0);
+            const dateTo = new Date(dateFrom);
+            dateTo.setDate(dateFrom.getDate() + 1); // Step 1 day
+            dateTo.setHours(12, 0, 0, 0);
 
-                const finalDate = new Date();
-                finalDate.setHours(12, 0, 0, 0);
+            const finalDate = new Date();
+            finalDate.setHours(12, 0, 0, 0);
 
-                if (dateTo > finalDate) {
-                    console.log(`Profession ${profession.title} is already up to date.`);
-                    return 0;
-                }
+            if (dateTo > finalDate) {
+                console.log(`Profession ${profession.title} is already up to date.`);
+                continue;
+            }
 
-                allUpToDate = false;
+            allUpToDate = false;
 
-                let page = 0;
-                const perPage = 100;
-                const synonyms_str = profession.synonyms.join(' OR ');
+            let page = 0;
+            const perPage = 100;
+            const synonyms_str = profession.synonyms.join(' OR ');
 
-                let localSum = 0;
+            let localSum = 0;
 
-                while (true) {
-                    await delay(100);
+            while (true) {
+                // Добавляем задержку перед каждым запросом
+                await delay(20);
 
-                    const response = await firstValueFrom(
-                        this.httpService.get('/vacancies', {
-                            headers: this.secureHeaders,
-                            params: {
-                                text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str})`,
-                                no_magic: true,
-                                only_with_salary: true,
-                                date_from: dateFrom.toISOString(),
-                                date_to: dateTo.toISOString(),
-                                per_page: perPage,
-                                page: page,
-                            },
-                        })
-                    );
-
-                    const vacancies: Vacancy[] = [];
-                    const items = response.data?.items || [];
-                    for (const item of items) {
-                        const dto = plainToInstance(VacancyDto, item, { excludeExtraneousValues: true });
-
-                        const errors = await validate(dto);
-                        if (errors.length > 0) {
-                            console.error('Validation failed for item:', item, errors);
-                        } else {
-                            const existingVacancy = await this.vacancyRepository.findOne({ where: { hhId: dto.hhId } });
-                            if (existingVacancy) {
-                                continue;
-                            }
-
-                            const experinceHHId = dto.experienceHHId;
-                            delete dto.experienceHHId;
-
-                            const vacancy = this.vacancyRepository.create({ ...dto, profession });
-
-                            const matchingGrades = grades.filter((grade) =>
-                                [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
-                                    (value) => typeof value === 'string' && value.includes(grade.title)
-                                )
-                            );
-
-                            if (matchingGrades.length > 0) {
-                                vacancy.grades = matchingGrades;
-                            }
-
-                            const matchingExperience = experiences.find(
-                                (experience) => experience.hhId === experinceHHId
-                            );
-
-                            if (matchingExperience) {
-                                vacancy.experience = matchingExperience;
-                            }
-
-                            vacancies.push(vacancy);
-                        }
-                    }
-
-                    if (vacancies.length > 0) {
-                        await this.vacancyRepository.save(vacancies);
-                    }
-
-                    localSum += vacancies.length;
-
-                    if (vacancies.length < perPage) {
-                        break;
-                    }
-                    page++;
-                }
-
-                profession.last_checked_date = dateTo;
-                await this.professionRepository.save(profession);
-                console.log(
-                    `${profession.title} ${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()} | New vacancies added: ${localSum} vacancies`
+                const response = await firstValueFrom(
+                    this.httpService.get('/vacancies', {
+                        headers: this.secureHeaders,
+                        params: {
+                            text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str}))`,
+                            no_magic: true,
+                            only_with_salary: true,
+                            date_from: dateFrom.toISOString(),
+                            date_to: dateTo.toISOString(),
+                            per_page: perPage,
+                            page: page,
+                        },
+                    })
                 );
-                return localSum;
-            })
-        );
 
-        sumLength = sumLengthPromises.reduce((acc, curr) => acc + curr, 0);
+                const vacancies: Vacancy[] = [];
+                const items = response.data?.items || [];
+                for (const item of items) {
+                    const dto = plainToInstance(VacancyDto, item, { excludeExtraneousValues: true });
+
+                    const errors = await validate(dto);
+                    if (errors.length > 0) {
+                        console.error('Validation failed for item:', item, errors);
+                    } else {
+                        const existingVacancy = await this.vacancyRepository.findOne({ where: { hhId: dto.hhId } });
+                        if (existingVacancy) {
+                            continue;
+                        }
+
+                        const experinceHHId = dto.experienceHHId;
+                        delete dto.experienceHHId;
+
+                        const vacancy = this.vacancyRepository.create({ ...dto, profession });
+
+                        const matchingGrades = grades.filter((grade) =>
+                            [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
+                                (value) => typeof value === 'string' && value.includes(grade.title)
+                            )
+                        );
+
+                        if (matchingGrades.length > 0) {
+                            vacancy.grades = matchingGrades;
+                        }
+
+                        const matchingExperience = experiences.find((experience) => experience.hhId === experinceHHId);
+
+                        if (matchingExperience) {
+                            vacancy.experience = matchingExperience;
+                        }
+
+                        vacancies.push(vacancy);
+                    }
+                }
+
+                if (vacancies.length > 0) {
+                    await this.vacancyRepository.save(vacancies);
+                }
+
+                localSum += vacancies.length;
+
+                if (vacancies.length < perPage) {
+                    break;
+                }
+                page++;
+            }
+
+            profession.last_checked_date = dateTo;
+            await this.professionRepository.save(profession);
+            console.log(
+                `${profession.title} ${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()} | New vacancies added: ${localSum} vacancies`
+            );
+            sumLength += localSum;
+        }
 
         if (allUpToDate) {
             return 'up_to_date';
