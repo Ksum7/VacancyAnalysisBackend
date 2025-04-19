@@ -19,7 +19,6 @@ export class ApiCollectorService implements OnModuleInit {
     private readonly secureHeaders: {
         Authorization: string;
         'HH-User-Agent': string;
-        'Content-Type': string;
     };
     constructor(
         private readonly httpService: HttpService,
@@ -38,7 +37,6 @@ export class ApiCollectorService implements OnModuleInit {
         this.secureHeaders = {
             Authorization: `Bearer ${this.configService.get<string>('HH_ACCESS_TOKEN')}`,
             'HH-User-Agent': this.configService.get<string>('HH-User-Agent'),
-            'Content-Type': 'application/x-www-form-urlencoded',
         };
     }
 
@@ -120,17 +118,19 @@ export class ApiCollectorService implements OnModuleInit {
                 let localSum = 0;
 
                 while (true) {
+                    await delay(100);
+
                     const response = await firstValueFrom(
                         this.httpService.get('/vacancies', {
                             headers: this.secureHeaders,
                             params: {
-                                // text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str}))`,
-                                // no_magic: true,
-                                // only_with_salary: true,
-                                // date_from: dateFrom.toISOString(),
-                                // date_to: dateTo.toISOString(),
-                                // per_page: perPage,
-                                // page: page,
+                                text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str}))`,
+                                no_magic: true,
+                                only_with_salary: true,
+                                date_from: dateFrom.toISOString(),
+                                date_to: dateTo.toISOString(),
+                                per_page: perPage,
+                                page: page,
                             },
                         })
                     );
