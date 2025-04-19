@@ -121,7 +121,7 @@ export class ApiCollectorService implements OnModuleInit {
                         this.httpService.get('/vacancies', {
                             headers: this.secureHeaders,
                             params: {
-                                text: `NAME:(${synonyms_str} or DESCRIPTION:(${synonyms_str}))`,
+                                text: encodeURIComponent(`NAME:(${synonyms_str} OR DESCRIPTION:(${synonyms_str}))`),
                                 no_magic: true,
                                 only_with_salary: true,
                                 date_from: dateFrom.toISOString(),
