@@ -19,6 +19,7 @@ export class ApiCollectorService implements OnModuleInit {
     private readonly secureHeaders: {
         Authorization: string;
         'HH-User-Agent': string;
+        'Content-Type': string;
     };
     constructor(
         private readonly httpService: HttpService,
@@ -37,6 +38,7 @@ export class ApiCollectorService implements OnModuleInit {
         this.secureHeaders = {
             Authorization: `Bearer ${this.configService.get<string>('HH_ACCESS_TOKEN')}`,
             'HH-User-Agent': this.configService.get<string>('HH-User-Agent'),
+            'Content-Type': 'application/x-www-form-urlencoded',
         };
     }
 
