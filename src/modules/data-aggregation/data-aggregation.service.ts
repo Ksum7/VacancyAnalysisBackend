@@ -142,13 +142,13 @@ export class DataAggregationService {
         const salaryTo = vacancy.salaryTo ? this.convertToRUB(vacancy.salaryTo, exchangeRate) : null;
 
         const finalSalaries = [];
-
+        const gross = vacancy.salaryGross ? 0.87 : 1;
         if (salaryFrom !== null && salaryFrom !== 0) {
-            finalSalaries.push(salaryFrom * 0.87);
+            finalSalaries.push(salaryFrom * gross);
         }
 
         if (salaryTo !== null && salaryTo !== 0) {
-            finalSalaries.push(salaryTo * 0.87);
+            finalSalaries.push(salaryTo * gross);
         }
 
         return finalSalaries;
