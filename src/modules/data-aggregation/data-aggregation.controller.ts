@@ -37,10 +37,18 @@ export class DataAggregationController {
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
-        @Query('to') to?: string
+        @Query('to') to?: string,
+        @Query('onlyTitleMatch') onlyTitleMatch?: string
     ): Promise<any> {
         const period = from && to ? { from: new Date(from), to: new Date(to) } : undefined;
-        return this.dataAggregationService.getStatistic(areaId, experienceId, professionId, gradeId, period);
+        return this.dataAggregationService.getStatistic(
+            areaId,
+            experienceId,
+            professionId,
+            gradeId,
+            period,
+            onlyTitleMatch === '1' || onlyTitleMatch.toLowerCase() === 'true'
+        );
     }
 
     @Get('/vacancies')
@@ -52,7 +60,8 @@ export class DataAggregationController {
         @Query('professionId') professionId?: string,
         @Query('gradeId') gradeId?: string,
         @Query('from') from?: string,
-        @Query('to') to?: string
+        @Query('to') to?: string,
+        @Query('onlyTitleMatch') onlyTitleMatch?: string
     ): Promise<Vacancy[]> {
         let period: { from: Date; to: Date } | undefined;
         if (from && to) {
@@ -73,7 +82,8 @@ export class DataAggregationController {
             experienceId,
             professionId,
             gradeId,
-            period
+            period,
+            onlyTitleMatch === '1' || onlyTitleMatch.toLowerCase() === 'true'
         );
     }
 

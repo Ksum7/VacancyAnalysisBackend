@@ -43,7 +43,8 @@ export class DataAggregationService {
         experienceId?: string,
         professionId?: string,
         gradeId?: string,
-        period?: { from: Date; to: Date }
+        period?: { from: Date; to: Date },
+        onlyTitleMatch?: boolean
     ): Promise<any> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -74,7 +75,9 @@ export class DataAggregationService {
             });
         }
 
-        const data = await query.where("salary_rangeModeId IS NULL OR salary_rangeModeId = 'MONTH'").getMany();
+        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
+        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
+        const data = await query.getMany();
 
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
 
@@ -96,7 +99,8 @@ export class DataAggregationService {
         experienceId?: string,
         professionId?: string,
         gradeId?: string,
-        period?: { from: Date; to: Date }
+        period?: { from: Date; to: Date },
+        onlyTitleMatch?: boolean
     ): Promise<Vacancy[]> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -120,15 +124,17 @@ export class DataAggregationService {
             query.andWhere('grades.id = :gradeId', { gradeId });
         }
 
+        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
+
         if (period) {
             query.andWhere('vacancy.publishedAt BETWEEN :from AND :to', {
                 from: period.from,
                 to: period.to,
             });
         }
+        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
 
         const data = await query
-            .where("salary_rangeModeId IS NULL OR salary_rangeModeId = 'MONTH'")
             .take(size)
             .skip(page * size)
             .getMany();
