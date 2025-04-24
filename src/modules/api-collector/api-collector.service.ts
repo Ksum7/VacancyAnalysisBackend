@@ -152,7 +152,9 @@ export class ApiCollectorService implements OnModuleInit {
                         const experinceHHId = dto.experienceHHId;
                         delete dto.experienceHHId;
 
-                        const vacancy = this.vacancyRepository.create({ ...dto, profession });
+                        const isMatchedByName = profession.synonyms.some((syn) => dto.name.toLowerCase().includes(syn));
+
+                        const vacancy = this.vacancyRepository.create({ ...dto, profession, isMatchedByName });
 
                         const matchingGrades = grades.filter((grade) =>
                             [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
