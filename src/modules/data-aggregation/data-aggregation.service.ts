@@ -85,7 +85,7 @@ export class DataAggregationService {
                 query.andWhere('vacancy.isMatchedByName');
                 break;
             case SearchFields.TitleAndRequirements:
-                query.andWhere('vacancy.isMatchedByName OR vacancy.isMatchedByRequirements');
+                query.andWhere('(vacancy.isMatchedByName OR vacancy.isMatchedByRequirements)');
                 break;
             default:
                 break;
@@ -168,7 +168,7 @@ export class DataAggregationService {
                 query.andWhere('vacancy.isMatchedByName');
                 break;
             case SearchFields.TitleAndRequirements:
-                query.andWhere('vacancy.isMatchedByName OR vacancy.isMatchedByRequirements');
+                query.andWhere('(vacancy.isMatchedByName OR vacancy.isMatchedByRequirements)');
                 break;
             default:
                 break;
