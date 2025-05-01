@@ -6,6 +6,7 @@ import { Grade } from 'src/entities/grade.entity';
 import { Profession } from 'src/entities/profession.entity';
 import { Vacancy } from 'src/entities/vacancy.entity';
 import { Repository } from 'typeorm';
+import { SearchFields } from './data-aggregation.controller';
 
 @Injectable()
 export class DataAggregationService {
@@ -44,7 +45,9 @@ export class DataAggregationService {
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date },
-        onlyTitleMatch?: boolean
+        searchFields?: SearchFields,
+        includeHourly?: boolean,
+        minSalary: number = 10000
     ): Promise<any> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -75,8 +78,31 @@ export class DataAggregationService {
             });
         }
 
-        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
-        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
+        switch (searchFields) {
+            case SearchFields.TitleAndDescription:
+                break;
+            case SearchFields.OnlyTitle:
+                query.andWhere('vacancy.isMatchedByName');
+                break;
+            case SearchFields.TitleAndRequirements:
+                query.andWhere('vacancy.isMatchedByName OR vacancy.isMatchedByRequirements');
+                break;
+            default:
+                break;
+        }
+
+        if (includeHourly) {
+            query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
+        } else {
+            query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
+        }
+
+        query.andWhere("vacancy.salaryCurrency = 'RUR'");
+
+        if (minSalary !== undefined && minSalary !== null) {
+            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+        }
+
         const data = await query.getMany();
 
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
@@ -100,7 +126,9 @@ export class DataAggregationService {
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date },
-        onlyTitleMatch?: boolean
+        searchFields?: SearchFields,
+        includeHourly?: boolean,
+        minSalary: number = 10000
     ): Promise<Vacancy[]> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -124,15 +152,37 @@ export class DataAggregationService {
             query.andWhere('grades.id = :gradeId', { gradeId });
         }
 
-        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
-
         if (period) {
             query.andWhere('vacancy.publishedAt BETWEEN :from AND :to', {
                 from: period.from,
                 to: period.to,
             });
         }
-        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
+
+        switch (searchFields) {
+            case SearchFields.TitleAndDescription:
+                break;
+            case SearchFields.OnlyTitle:
+                query.andWhere('vacancy.isMatchedByName');
+                break;
+            case SearchFields.TitleAndRequirements:
+                query.andWhere('vacancy.isMatchedByName OR vacancy.isMatchedByRequirements');
+                break;
+            default:
+                break;
+        }
+
+        if (includeHourly) {
+            query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
+        } else {
+            query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
+        }
+
+        query.andWhere("vacancy.salaryCurrency = 'RUR'");
+
+        if (minSalary !== undefined && minSalary !== null) {
+            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+        }
 
         const data = await query
             .take(size)

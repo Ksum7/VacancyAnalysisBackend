@@ -57,6 +57,9 @@ export class Vacancy {
     @Column({ default: false, type: 'boolean' })
     isMatchedByName: boolean;
 
+    @Column({ default: false, type: 'boolean' })
+    isMatchedByRequirements: boolean;
+
     @ManyToMany(() => Grade, (grade) => grade.vacancies, {
         onDelete: 'CASCADE',
     })

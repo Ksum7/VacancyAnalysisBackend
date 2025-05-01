@@ -156,7 +156,16 @@ export class ApiCollectorService implements OnModuleInit {
                             dto.name?.toLowerCase().includes(syn)
                         );
 
-                        const vacancy = this.vacancyRepository.create({ ...dto, profession, isMatchedByName });
+                        const isMatchedByRequirements = profession.synonyms.some((syn) =>
+                            dto.snippetRequirement?.toLowerCase().includes(syn)
+                        );
+
+                        const vacancy = this.vacancyRepository.create({
+                            ...dto,
+                            profession,
+                            isMatchedByName,
+                            isMatchedByRequirements,
+                        });
 
                         const matchingGrades = grades.filter((grade) =>
                             [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
