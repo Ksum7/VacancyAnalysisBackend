@@ -6,6 +6,7 @@ import { Grade } from 'src/entities/grade.entity';
 import { Profession } from 'src/entities/profession.entity';
 import { Vacancy } from 'src/entities/vacancy.entity';
 import { Repository } from 'typeorm';
+import { SearchFields } from './data-aggregation.controller';
 
 @Injectable()
 export class DataAggregationService {
@@ -44,7 +45,9 @@ export class DataAggregationService {
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date },
-        onlyTitleMatch?: boolean
+        searchFields?: SearchFields,
+        includeHourly?: boolean,
+        minSalary: number = 10000
     ): Promise<any> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -75,10 +78,70 @@ export class DataAggregationService {
             });
         }
 
-        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
-        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
-        const data = await query.getMany();
+        switch (searchFields) {
+            case SearchFields.TitleAndDescription:
+                break;
+            case SearchFields.OnlyTitle:
+                query.andWhere('vacancy.isMatchedByName');
+                break;
+            case SearchFields.TitleAndRequirements:
+                query.andWhere('(vacancy.isMatchedByName OR vacancy.isMatchedByRequirements)');
+                break;
+            default:
+                break;
+        }
 
+        query.andWhere(`vacancy.salary_rangeModeId IN (:...modes)`, {
+            modes: includeHourly ? ['HOUR', 'MONTH'] : ['MONTH'],
+        });
+
+        if (minSalary !== undefined && minSalary !== null) {
+            let salaryFromCondition: string;
+            let salaryToCondition: string;
+
+            if (includeHourly) {
+                salaryFromCondition = `(
+                    (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryFrom * 176 > :minSalary) OR
+                    (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryFrom > :minSalary)
+                )`;
+                salaryToCondition = `(
+                    (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryTo * 176 > :minSalary) OR
+                    (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryTo > :minSalary)
+                )`;
+            } else {
+                salaryFromCondition = `vacancy.salaryFrom > :minSalary`;
+                salaryToCondition = `vacancy.salaryTo > :minSalary`;
+            }
+
+            query.andWhere(
+                `(
+                    (
+                        vacancy.salaryFrom IS NOT NULL AND
+                        ${salaryFromCondition} AND
+                        vacancy.salaryTo IS NOT NULL AND
+                        ${salaryToCondition}
+                    )
+                    OR
+                    (
+                        vacancy.salaryFrom IS NOT NULL AND
+                        ${salaryFromCondition} AND
+                        vacancy.salaryTo IS NULL
+                    )
+                    OR
+                    (
+                        vacancy.salaryTo IS NOT NULL AND
+                        ${salaryToCondition} AND
+                        vacancy.salaryFrom IS NULL
+                    )
+                )`,
+                { minSalary }
+            );
+        }
+
+        query.andWhere("vacancy.salaryCurrency = 'RUR'");
+        console.log(query.getQueryAndParameters());
+        const data = await query.getMany();
+        console.log(data);
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
 
         return {
@@ -100,7 +163,9 @@ export class DataAggregationService {
         professionId?: string,
         gradeId?: string,
         period?: { from: Date; to: Date },
-        onlyTitleMatch?: boolean
+        searchFields?: SearchFields,
+        includeHourly?: boolean,
+        minSalary: number = 10000
     ): Promise<Vacancy[]> {
         const query = this.vacancyRepository
             .createQueryBuilder('vacancy')
@@ -124,15 +189,74 @@ export class DataAggregationService {
             query.andWhere('grades.id = :gradeId', { gradeId });
         }
 
-        query.andWhere('vacancy.isMatchedByName = :onlyTitleMatch', { onlyTitleMatch });
-
         if (period) {
             query.andWhere('vacancy.publishedAt BETWEEN :from AND :to', {
                 from: period.from,
                 to: period.to,
             });
         }
-        query.andWhere("(vacancy.salary_rangeModeId IS NULL OR vacancy.salary_rangeModeId = 'MONTH')");
+
+        switch (searchFields) {
+            case SearchFields.TitleAndDescription:
+                break;
+            case SearchFields.OnlyTitle:
+                query.andWhere('vacancy.isMatchedByName');
+                break;
+            case SearchFields.TitleAndRequirements:
+                query.andWhere('(vacancy.isMatchedByName OR vacancy.isMatchedByRequirements)');
+                break;
+            default:
+                break;
+        }
+
+        query.andWhere(`vacancy.salary_rangeModeId IN (:...modes)`, {
+            modes: includeHourly ? ['HOUR', 'MONTH'] : ['MONTH'],
+        });
+
+        if (minSalary !== undefined && minSalary !== null) {
+            let salaryFromCondition: string;
+            let salaryToCondition: string;
+
+            if (includeHourly) {
+                salaryFromCondition = `(
+                    (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryFrom * 176 > :minSalary) OR
+                    (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryFrom > :minSalary)
+                )`;
+                salaryToCondition = `(
+                    (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryTo * 176 > :minSalary) OR
+                    (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryTo > :minSalary)
+                )`;
+            } else {
+                salaryFromCondition = `vacancy.salaryFrom > :minSalary`;
+                salaryToCondition = `vacancy.salaryTo > :minSalary`;
+            }
+
+            query.andWhere(
+                `(
+                    (
+                        vacancy.salaryFrom IS NOT NULL AND
+                        ${salaryFromCondition} AND
+                        vacancy.salaryTo IS NOT NULL AND
+                        ${salaryToCondition}
+                    )
+                    OR
+                    (
+                        vacancy.salaryFrom IS NOT NULL AND
+                        ${salaryFromCondition} AND
+                        vacancy.salaryTo IS NULL
+                    )
+                    OR
+                    (
+                        vacancy.salaryTo IS NOT NULL AND
+                        ${salaryToCondition} AND
+                        vacancy.salaryFrom IS NULL
+                    )
+                )`,
+                { minSalary }
+            );
+        }
+
+        query.andWhere("vacancy.salaryCurrency = 'RUR'");
 
         const data = await query
             .take(size)
@@ -149,12 +273,13 @@ export class DataAggregationService {
 
         const finalSalaries = [];
         const gross = vacancy.salaryGross ? 0.87 : 1;
+        const hourMult = vacancy.salary_rangeModeId == 'HOUR' ? 176 : 1;
         if (salaryFrom !== null && salaryFrom !== 0) {
-            finalSalaries.push(salaryFrom * gross);
+            finalSalaries.push(salaryFrom * gross * hourMult);
         }
 
         if (salaryTo !== null && salaryTo !== 0) {
-            finalSalaries.push(salaryTo * gross);
+            finalSalaries.push(salaryTo * gross * hourMult);
         }
 
         return finalSalaries;

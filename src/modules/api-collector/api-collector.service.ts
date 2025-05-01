@@ -124,7 +124,7 @@ export class ApiCollectorService implements OnModuleInit {
                     this.httpService.get('/vacancies', {
                         headers: this.secureHeaders,
                         params: {
-                            text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str}))`,
+                            text: `NAME:(${synonyms_str}) OR DESCRIPTION:(${synonyms_str})`,
                             no_magic: true,
                             only_with_salary: true,
                             date_from: dateFrom.toISOString(),
@@ -156,7 +156,16 @@ export class ApiCollectorService implements OnModuleInit {
                             dto.name?.toLowerCase().includes(syn)
                         );
 
-                        const vacancy = this.vacancyRepository.create({ ...dto, profession, isMatchedByName });
+                        const isMatchedByRequirements = profession.synonyms.some((syn) =>
+                            dto.snippetRequirement?.toLowerCase().includes(syn)
+                        );
+
+                        const vacancy = this.vacancyRepository.create({
+                            ...dto,
+                            profession,
+                            isMatchedByName,
+                            isMatchedByRequirements,
+                        });
 
                         const matchingGrades = grades.filter((grade) =>
                             [vacancy.name, vacancy.snippetRequirement, vacancy.snippetResponsibility].some(
