@@ -92,14 +92,22 @@ export class DataAggregationService {
         }
 
         if (includeHourly) {
-            query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
+            query.andWhere(`(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')`);
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere(
+                    `( 
+                        (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryFrom * 176 > :minSalary AND vacancy.salaryTo * 176 > :minSalary) 
+                        OR 
+                        (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryFrom > :minSalary AND vacancy.salaryTo > :minSalary)
+                    )`,
+                    { minSalary }
+                );
+            }
         } else {
-            query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
-        }
-
-        if (minSalary !== undefined && minSalary !== null) {
-            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-            query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
+            query.andWhere(`vacancy.salary_rangeModeId = 'MONTH'`);
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere(`vacancy.salaryFrom > :minSalary AND vacancy.salaryTo > :minSalary`, { minSalary });
+            }
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
@@ -174,14 +182,22 @@ export class DataAggregationService {
         }
 
         if (includeHourly) {
-            query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
+            query.andWhere(`(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')`);
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere(
+                    `( 
+                (vacancy.salary_rangeModeId = 'HOUR' AND vacancy.salaryFrom * 176 > :minSalary AND vacancy.salaryTo * 176 > :minSalary) 
+                OR 
+                (vacancy.salary_rangeModeId = 'MONTH' AND vacancy.salaryFrom > :minSalary AND vacancy.salaryTo > :minSalary)
+            )`,
+                    { minSalary }
+                );
+            }
         } else {
-            query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
-        }
-
-        if (minSalary !== undefined && minSalary !== null) {
-            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-            query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
+            query.andWhere(`vacancy.salary_rangeModeId = 'MONTH'`);
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere(`vacancy.salaryFrom > :minSalary AND vacancy.salaryTo > :minSalary`, { minSalary });
+            }
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
