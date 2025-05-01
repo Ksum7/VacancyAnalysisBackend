@@ -95,13 +95,12 @@ export class DataAggregationService {
             query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
         } else {
             query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+            }
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
-
-        if (minSalary !== undefined && minSalary !== null) {
-            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-        }
 
         const data = await query.getMany();
 
@@ -176,13 +175,12 @@ export class DataAggregationService {
             query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
         } else {
             query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
+            if (minSalary !== undefined && minSalary !== null) {
+                query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+            }
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
-
-        if (minSalary !== undefined && minSalary !== null) {
-            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-        }
 
         const data = await query
             .take(size)
@@ -199,12 +197,13 @@ export class DataAggregationService {
 
         const finalSalaries = [];
         const gross = vacancy.salaryGross ? 0.87 : 1;
+        const hourMult = vacancy.salary_rangeModeId == 'HOUR' ? 176 : 1;
         if (salaryFrom !== null && salaryFrom !== 0) {
-            finalSalaries.push(salaryFrom * gross);
+            finalSalaries.push(salaryFrom * gross * hourMult);
         }
 
         if (salaryTo !== null && salaryTo !== 0) {
-            finalSalaries.push(salaryTo * gross);
+            finalSalaries.push(salaryTo * gross * hourMult);
         }
 
         return finalSalaries;
