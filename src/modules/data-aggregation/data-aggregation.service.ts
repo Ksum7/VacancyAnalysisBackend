@@ -95,10 +95,11 @@ export class DataAggregationService {
             query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
         } else {
             query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
-            if (minSalary !== undefined && minSalary !== null) {
-                query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-                query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
-            }
+        }
+
+        if (minSalary !== undefined && minSalary !== null) {
+            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+            query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
@@ -176,10 +177,11 @@ export class DataAggregationService {
             query.andWhere("(vacancy.salary_rangeModeId = 'HOUR' OR vacancy.salary_rangeModeId = 'MONTH')");
         } else {
             query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
-            if (minSalary !== undefined && minSalary !== null) {
-                query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
-                query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
-            }
+        }
+
+        if (minSalary !== undefined && minSalary !== null) {
+            query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+            query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
