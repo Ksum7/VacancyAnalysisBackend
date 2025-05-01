@@ -97,6 +97,7 @@ export class DataAggregationService {
             query.andWhere("vacancy.salary_rangeModeId = 'MONTH'");
             if (minSalary !== undefined && minSalary !== null) {
                 query.andWhere('vacancy.salaryFrom > :minSalary', { minSalary });
+                query.andWhere('vacancy.salaryTo > :minSalary', { minSalary });
             }
         }
 
