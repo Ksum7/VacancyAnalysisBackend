@@ -145,8 +145,8 @@ export class DataAggregationService {
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
 
         return {
-            min: salaries[0] || null,
-            max: salaries[salaries.length - 1] || null,
+            min: this.calculatePercentile(salaries, 0.1), // salaries[0] || null,
+            max: this.calculatePercentile(salaries, 0.9), // salaries[salaries.length - 1] || null,
             median: this.calculateMedian(salaries),
             q1: this.calculatePercentile(salaries, 0.25),
             q3: this.calculatePercentile(salaries, 0.75),
