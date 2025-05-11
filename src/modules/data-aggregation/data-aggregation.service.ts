@@ -139,9 +139,9 @@ export class DataAggregationService {
         }
 
         query.andWhere("vacancy.salaryCurrency = 'RUR'");
-        console.log(query.getQueryAndParameters());
+
         const data = await query.getMany();
-        console.log(data);
+
         const salaries = data.flatMap((vacancy) => this.getSalaries(vacancy)).sort((a, b) => a - b);
 
         return {
